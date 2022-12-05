@@ -1,12 +1,13 @@
-from flask import Flask, request, make_response
+from flask import Flask, request, send_from_directory
 import os
 import subprocess
 import logging
 import datetime
 from  pathlib import Path
-from flask import make_response
-from google.cloud import error_reporting
-client = error_reporting.Client()
+from num2words import num2words as n2w
+#from google.cloud import error_reporting
+
+#client = error_reporting.Client()
 
 PROJECT_DIR = os.getcwd()
 FILE_PATH = 'generated/this_weeks_bulletin.tex'
@@ -41,8 +42,8 @@ def build_pdf():
     # NOTE: run the process twice (I dont' know why but sometimes the spacing
     #       is messed up until the second time it is run)
     filename = Path(FILE_PATH).name
-    subprocess.run(["../bin/pdflatex", filename])
-    if subprocess.run(["../bin/pdflatex", filename]).returncode != 0:
+    subprocess.run(["pdflatex", filename])
+    if subprocess.run(["pdflatex", filename]).returncode != 0:
         raise Exception("Failed to generate pdf from latex file 1")
     os.chdir(PROJECT_DIR)
 
@@ -69,9 +70,12 @@ def build_latex_file(data):
     baptisms = latex_safe(data['baptisms'])
 
     # add the hymn variables
-    # for hymn in data['hymns']:
-    #     logging.info(hymn['hymn_string'])
-    #     f.write(f"\\newcommand{{\\hymn{hymn['hymn_role']}}}{{{latex_safe(hymn['hymn_string'])}}} \n")
+    for (index, hymn) in enumerate(data['hymns']):
+        hymn_string = f"Hymn {hymn['num']} - {hymn['title']}"
+        hymn_variable_name = f'hymn{n2w(index+1)}'
+
+        logging.info(hymn_string)
+        f.write(f"\\newcommand{{\\{hymn_variable_name}}}{{{latex_safe(hymn_string)}}} \n")
 
     f.write("\\newcommand{\\coverdate}{" + latex_safe(sunday.strftime("%B %d, %Y")) +  "} \n")
     f.write("\\newcommand{\\scriptureCalltoWorship}{" + latex_safe(data['scripture']) +  "} \n")
@@ -125,7 +129,7 @@ def build_latex_file(data):
     logging.info(f"Saved Bulletin to {FILE_PATH}")
 
 app = Flask(__name__)
-@app.route("/", methods=['POST'])
+@app.route("/", methods=['GET','POST'])
 def build_bulletin():
     try:
         data = request.get_json()
@@ -133,15 +137,14 @@ def build_bulletin():
         build_latex_file(data)
         build_pdf()
 
-        pdf_filepath = FILE_PATH.split('.')[0] + '.pdf'
-
-        response = make_response()
-        response.headers.set('Content-Disposition', 'attachment', filename=pdf_filepath)
-        response.headers.set('Content-Type', 'application/pdf')
-        return response
+        pdf_filepath = Path(FILE_PATH.split('.')[0] + '.pdf')
+        return send_from_directory(pdf_filepath.parent, pdf_filepath.name, as_attachment=True)
     except Exception as e:
-        client.report_exception()
+        #client.report_exception()
         print(e)
+        os.chdir(PROJECT_DIR)
+        f = Path(FILE_PATH)
+        return send_from_directory(f.parent,f.name, as_attachment=True)
     finally:
         os.chdir(PROJECT_DIR)
 
