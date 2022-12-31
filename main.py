@@ -96,13 +96,13 @@ def build_latex_file(data):
     f.write(ordo_body1_str)
 
     # ____________________New Members_______________________
-    if new_members.strip() != '-':
+    if not new_members.strip():
         logging.info(f"New Members present")
         f.write(f"\n\nAdmission of New Members: {latex_safe(new_members)}")
         f.write("\\vspace{3mm}")
 
     # ____________________Baptisms_______________________
-    if baptisms.strip() != '-':
+    if not baptisms.strip():
         logging.info(f"Baptisms present")
         f.write(f"\n\nHousehold Baptisms: {latex_safe(baptisms)}"+"""
     \\begin{leftbar}
