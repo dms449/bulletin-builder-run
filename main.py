@@ -65,7 +65,7 @@ def build_latex_file(data):
     benediction = get_benediction(data['benediction'])
     creed = get_creed(data['creed'])
     new_members = latex_safe(data['newMembers'])
-    baptisms = latex_safe(data['baptisms'])
+    baptisms = latex_safe(data['baptismNames'])
 
     # add the hymn variables
     for (index, hymn) in enumerate(data['hymns']):
@@ -102,18 +102,21 @@ def build_latex_file(data):
     # ____________________Baptisms_______________________
     if baptisms.strip():
         logging.info(f"Baptisms present")
-        f.write(f"\n\nHousehold Baptisms: {latex_safe(baptisms)}"+"""
-    \\begin{leftbar}
-        \\vspace{-0.8em}
-        Little child, for you Jesus Christ came to this earth,\\
-        struggled and suffered; for your sake He crossed Gethsemane\\
-        and went through the darkness of Calvary;\\
-        for your sake He cried: ``It is finished''; for your sake He died\\
-        and for your sake He overcame death; indeed for your sake,\\
-        little child, and you---still---know nothing of it.\\
-        And thus the word of the apostle is confirmed: ``We love God,\\
-        for He loved us first.''
-    \end{leftbar}""")
+        f.write(f"\n\nHousehold Baptisms: {latex_safe(baptisms)}")
+        if data['includeBaptismCharge']:
+            f.write("""
+                \\begin{leftbar}
+                    \\vspace{-0.8em}
+                    Little child, for you Jesus Christ came to this earth,\\
+                    struggled and suffered; for your sake He crossed Gethsemane\\
+                    and went through the darkness of Calvary;\\
+                    for your sake He cried: ``It is finished''; for your sake He died\\
+                    and for your sake He overcame death; indeed for your sake,\\
+                    little child, and you---still---know nothing of it.\\
+                    And thus the word of the apostle is confirmed: ``We love God,\\
+                    for He loved us first.''
+                \\end{leftbar}
+            """)
 
     # get the second half of the ordo
     # ______________________Body2_____________________
