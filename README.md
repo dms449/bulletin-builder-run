@@ -17,5 +17,5 @@ python3 test/send_http.py
 
 ## Deploy to Google Cloud Run
 ```
-gcloud run deploy bulletin-builder --source=. --region=us.central1 --no-allow-unauthenticated
+gcloud run deploy bulletin-builder --source=. --region=us-central1 --no-allow-unauthenticated
 ```
